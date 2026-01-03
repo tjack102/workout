@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mass Impact 12-Week Tracker</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --text-main: #e0e0e0;
+            --accent: #bb86fc;
+            --secondary: #03dac6;
+            --hers: #ff80ab;
+            --input-bg: #2c2c2c;
+            --border: #333;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 10px;
+            padding-bottom: 50px;
+            transition: background-color 0.3s;
+        }
+        
+        /* HER MODE THEME OVERRIDES */
+        body.wife-mode {
+            --accent: #ff80ab;
+            --secondary: #ff4081;
+        }
+
+        /* HEADER & TOGGLE */
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 0 5px;
+        }
+        h1 { margin: 0; font-size: 1.2rem; color: var(--accent); }
+        
+        .mode-toggle {
+            background: var(--input-bg);
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .mode-toggle:active { transform: scale(0.95); }
+
+        /* Navigation Tabs */
+        .tabs { display: flex; justify-content: space-around; margin-bottom: 15px; border-bottom: 1px solid var(--border); }
+        .tab-btn {
+            background: none; border: none; color: #888; padding: 10px 5px; font-weight: bold; font-size: 0.9rem; cursor: pointer; flex: 1;
+        }
+        .tab-btn.active { color: var(--secondary); border-bottom: 2px solid var(--secondary); }
+
+        /* Phase Containers */
+        .phase-container { display: none; }
+        .phase-container.active { display: block; }
+
+        /* Day Accordions */
+        .day-card {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            margin-bottom: 10px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+        .day-header {
+            padding: 15px;
+            background-color: #252525;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .day-header span { color: var(--text-main); }
+        .day-content { display: none; padding: 10px; }
+        .day-content.open { display: block; }
+
+        /* Exercise Rows */
+        .exercise-block {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px dashed var(--border);
+        }
+        .exercise-block:last-child { border-bottom: none; }
+        
+        /* EDITABLE TITLE STYLES */
+        .ex-header { display: flex; flex-direction: column; gap: 5px; margin-bottom: 8px; }
+        
+        .ex-name-input {
+            background: transparent;
+            border: none;
+            border-bottom: 1px dashed #444;
+            color: var(--text-main);
+            font-weight: bold;
+            font-size: 1rem;
+            width: 100%;
+            padding: 2px 0;
+            border-radius: 0;
+        }
+        .ex-name-input:focus { outline: none; border-bottom: 1px solid var(--accent); }
+
+        .ex-reps { font-size: 0.9rem; color: var(--secondary); font-family: monospace; }
+        
+        .hers-badge {
+            font-size: 0.7rem;
+            background: var(--hers);
+            color: black;
+            padding: 2px 6px;
+            border-radius: 4px;
+            display: inline-block;
+            width: fit-content;
+            margin-bottom: 4px;
+            font-weight: bold;
+        }
+
+        /* Inputs */
+        .input-row { display: flex; gap: 10px; margin-top: 5px; }
+        input.data-input {
+            background-color: var(--input-bg);
+            border: 1px solid var(--border);
+            color: white;
+            padding: 10px;
+            border-radius: 4px;
+            width: 100%;
+            font-size: 1rem;
+        }
+        label { font-size: 0.7rem; color: #888; display: block; margin-bottom: 2px; }
+        .input-group { flex: 1; }
+
+        /* Reset Button */
+        .reset-btn {
+            background: #cf6679; color: black; width: 100%; padding: 15px;
+            border: none; border-radius: 8px; margin-top: 30px; font-weight: bold;
+        }
+        
+        .small-hint { text-align: center; color: #666; font-size: 0.8rem; margin-top: 10px; }
+
+    </style>
+</head>
+<body>
+
+    <div class="header-container">
+        <h1>MASS IMPACT</h1>
+        <button class="mode-toggle" onclick="toggleMode()">CURRENT: HIS</button>
+    </div>
+
+    <!-- TABS -->
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchPhase('p1')">PH 1: VOL<br><span style="font-size:0.7em">Wks 1-4</span></button>
+        <button class="tab-btn" onclick="switchPhase('p2')">PH 2: PYR<br><span style="font-size:0.7em">Wks 5-8</span></button>
+        <button class="tab-btn" onclick="switchPhase('p3')">PH 3: STR<br><span style="font-size:0.7em">Wks 9-12</span></button>
+    </div>
+
+    <!-- PHASE 1 -->
+    <div id="p1" class="phase-container active">
+        <div class="day-card"><div class="day-header" onclick="toggleDay(this)">Day 1: PULL <span>▼</span></div><div class="day-content" id="p1-d1-list"></div></div>
+        <div class="day-card"><div class="day-header" onclick="toggleDay(this)">Day 2: PUSH <span>▼</span></div><div class="day-content" id="p1-d2-list"></div></div>
+        <div class="day-card"><div class="day-header" onclick="toggleDay(this)">Day 3: LEGS <span>▼</span></div><div class="day-content" id="p1-d3-list"></div></div>
+        <div class="day-card"><div class="day-header" onclick="toggleDay(this)">Day 4: PULL <span>▼</span></div><div class="day-content" id="p1-d4-list"></div></div>
+        <div class="day-card"><div class="day-header" onclick="toggleDay(this)">Day 5: PUSH <span>▼</span></div><div class="day-content" id="p1-d5-list"></div></div>
+    </div>
+
+    <!-- PHASE 2 -->
+    <div id="p2" class="phase-container">
+        <div class="day-card"><div class="day-header" onclick="toggleDay(this)">Day 1: PULL <span>▼</span></div><div class="day-content" id="p2-d1-list"></div></div>
+        <div class="day-card"><div class="day-header" onclick="toggleDay(this)">Day 2: PUSH <span>▼</span></div><div class="day-content" id="p2-d2-list"></div></div>
+        <div class="day-card"><div class="day-header" onclick="toggleDay(this)">Day 3: LEGS <span>▼</span></div><div class="day-content" id="p2-d3-list"></div></div>
+        <div class="day-card"><div class="day-header" onclick="toggleDay(this)">Day 4: PULL <span>▼</span></div><div class="day-content" id="p2-d4-list"></div></div>
+        <div class="day-card"><div class="day-header" onclick="toggleDay(this)">Day 5: PUSH <span>▼</span></div><div class="day-content" id="p2-d5-list"></div></div>
+    </div>
+
+    <!-- PHASE 3 -->
+    <div id="p3" class="phase-container">
+        <div class="day-card"><div class="day-header" onclick="toggleDay(this)">Day 1: PULL <span>▼</span></div><div class="day-content" id="p3-d1-list"></div></div>
+        <div class="day-card"><div class="day-header" onclick="toggleDay(this)">Day 2: PUSH <span>▼</span></div><div class="day-content" id="p3-d2-list"></div></div>
+        <div class="day-card"><div class="day-header" onclick="toggleDay(this)">Day 3: LEGS <span>▼</span></div><div class="day-content" id="p3-d3-list"></div></div>
+        <div class="day-card"><div class="day-header" onclick="toggleDay(this)">Day 4: PULL <span>▼</span></div><div class="day-content" id="p3-d4-list"></div></div>
+        <div class="day-card"><div class="day-header" onclick="toggleDay(this)">Day 5: PUSH <span>▼</span></div><div class="day-content" id="p3-d5-list"></div></div>
+    </div>
+
+    <p class="small-hint">Everything auto-saves to your phone. Tap exercise names to rename them.</p>
+    <button class="reset-btn" onclick="clearData()">⚠️ RESET ALL DATA</button>
+
+<script>
+    // --- STATE MANAGEMENT ---
+    let isWifeMode = false;
+
+    // --- BASE DATA ---
+    const data = {
+        p1: {
+            d1: [
+                { name: "Single Arm Row (Cable)", reps: "3x 15-20", note: "Focus on stretch", hers: "Single Arm Row (Stretch)" },
+                { name: "Pull-Up (Bodyweight)", reps: "2x 8-12", note: "", hers: "Assisted Pull-Up" },
+                { name: "Power Shrug", reps: "3x 8-12", note: "Heavy", hers: "Pause Shrugs (3s hold)" },
+                { name: "Standing Pullover", reps: "3x 12-15", note: "", hers: "Standing Pullover" },
+                { name: "Rear Delt Fly", reps: "2x 10-15", note: "", hers: "Rear Delt Fly" },
+                { name: "Incline Curl", reps: "2x 8-10", note: "", hers: "Incline Curl" }
+            ],
+            d2: [
+                { name: "Face Pull", reps: "3x 10-15", note: "Do not skip", hers: "Face Pull (Essential)" },
+                { name: "Weighted Dip", reps: "2x 8-12", note: "", hers: "Bench Dips / Machine Dips" },
+                { name: "AD Press (Arnold)", reps: "3x 8-12", note: "", hers: "Seated DB Press (Standard)" },
+                { name: "Lu Raise", reps: "2x 10-15", note: "", hers: "Lateral Raise" },
+                { name: "Pec Deck (Fly)", reps: "2x 10-15", note: "Sub for Crossover", hers: "Incline Fly" },
+                { name: "Overhead Tri Ext", reps: "2x 10-15", note: "", hers: "Overhead Tri Ext" }
+            ],
+            d3: [
+                { name: "Squat (Barbell)", reps: "3x 6-8", note: "", hers: "Bulgarian Split Squat" },
+                { name: "RDL (Barbell)", reps: "2x 6-8", note: "Hamstring stretch", hers: "RDL (Focus Glute Shelf)" },
+                { name: "Bulgarian Split Squat", reps: "2x 20", note: "Sub for Walking Lunge", hers: "Walking Lunges" },
+                { name: "Single Arm Row (DB)", reps: "2x 8-10", note: "Heavy density", hers: "Single Arm Row" },
+                { name: "Abs / Neck", reps: "Failure", note: "", hers: "Good/Bad Girl Superset" }
+            ],
+            d4: [
+                { name: "Neutral Pull-Up", reps: "3x 8-12", note: "", hers: "Neutral Pulldown" },
+                { name: "Bent Over Row", reps: "3x 8-12", note: "", hers: "Bent Over Row" },
+                { name: "Rack Pulls (Above Knee)", reps: "2x 8-12", note: "Use Straps", hers: "Rack Pulls (Use Straps)" },
+                { name: "Partial Lat Raise", reps: "3x 8-15", note: "Heavy swing ok", hers: "Partial Lat Raise" },
+                { name: "Hammer Curl", reps: "3x 8-12", note: "", hers: "Hammer Curl" }
+            ],
+            d5: [
+                { name: "Face Pull", reps: "3x 10-15", note: "", hers: "Face Pull" },
+                { name: "Incline DB Press", reps: "3x 8-10", note: "", hers: "Incline DB Press" },
+                { name: "Seated Shoulder Press", reps: "3x 8-10", note: "", hers: "Seated Shoulder Press" },
+                { name: "Tricep Extension", reps: "2x 8-10", note: "", hers: "Tricep Extension" },
+                { name: "Lateral Raise", reps: "3x 8-12", note: "", hers: "Lateral Raise" },
+                { name: "Neck/Legs", reps: "Failure", note: "", hers: "Leg Ext / Leg Curl Superset" }
+            ]
+        },
+        p2: {
+            d1: [
+                { name: "Single Arm Row", reps: "4 Sets: 20, 15, 10, 8", note: "Add weight each set", hers: "Single Arm Row (Pyramid)" },
+                { name: "Pull-Up", reps: "4x 6-8", note: "Heavier than Ph1", hers: "Assisted Pull-Up" },
+                { name: "Power Shrug", reps: "3x 8-12", note: "", hers: "Pause Shrug (3s hold)" },
+                { name: "Standing Pullover", reps: "3x 10-12", note: "", hers: "Standing Pullover" },
+                { name: "Rear Delt / Inc Curl", reps: "2 Sets", note: "Superset", hers: "Rear Delt / Inc Curl" }
+            ],
+            d2: [
+                { name: "Face Pull", reps: "3x 10-15", note: "", hers: "Face Pull" },
+                { name: "Weighted Dip", reps: "2x 8-12", note: "", hers: "Machine Dips" },
+                { name: "AD Press", reps: "3 Sets: 6-8, 12, 12", note: "Heavy first set", hers: "Seated DB Press" },
+                { name: "Lu Raise", reps: "2x 10-15", note: "", hers: "Lateral Raise" },
+                { name: "Pec Deck", reps: "2x 10-15", note: "", hers: "Pec Deck" },
+                { name: "Overhead Tri Ext", reps: "2x 10-15", note: "", hers: "Overhead Tri Ext" }
+            ],
+            d3: [
+                { name: "Squat", reps: "3x 6-8", note: "", hers: "Split Squat" },
+                { name: "RDL", reps: "2 Sets: 6-8, 10-15", note: "1 Heavy, 1 Backoff", hers: "RDL (1 Heavy, 1 Backoff)" },
+                { name: "Bulgarian Split Squat", reps: "2x 20", note: "Death march", hers: "Walking Lunge" },
+                { name: "Single Arm Row (DB)", reps: "2 Sets: 8-10, 10-15", note: "", hers: "Single Arm Row" },
+                { name: "Abs / Neck", reps: "Failure", note: "", hers: "Good/Bad Girl Superset" }
+            ],
+            d4: [
+                { name: "Neutral Pull-Up", reps: "3x 6-8", note: "Heavy", hers: "Neutral Pulldown" },
+                { name: "Bent Over Row", reps: "3x 8-12", note: "", hers: "Bent Over Row" },
+                { name: "Rack Pulls", reps: "2x 8-12", note: "Use Straps", hers: "Rack Pulls" },
+                { name: "Partial Lat Raise", reps: "3x 8-15", note: "", hers: "Partial Lat Raise" },
+                { name: "Hammer Curl", reps: "3x 8-12", note: "", hers: "Hammer Curl" }
+            ],
+            d5: [
+                { name: "Face Pull", reps: "3x 10-15", note: "", hers: "Face Pull" },
+                { name: "Incline DB Press", reps: "2 Sets: 6-8, 10", note: "Heavy first", hers: "Incline Fly" },
+                { name: "Seated Shoulder Press", reps: "2 Sets: 6-8, 10", note: "Heavy first", hers: "Seated Shoulder Press" },
+                { name: "Tricep Ext / Lat Raise", reps: "3 Sets", note: "Superset", hers: "Tricep / Lat Raise" },
+                { name: "Neck/Legs", reps: "Failure", note: "", hers: "Leg Ext / Leg Curl" }
+            ]
+        },
+        p3: {
+            d1: [
+                { name: "Single Arm Row", reps: "4x 6-10", note: "ALL SETS HEAVY", hers: "Single Arm Row" },
+                { name: "Pull-Up (Weighted)", reps: "4x 4-6", note: "Very Heavy", hers: "Assisted Pull-Up" },
+                { name: "Power Shrug", reps: "3x 8-12", note: "", hers: "Pause Shrug" },
+                { name: "Standing Pullover", reps: "3x 8-10", note: "", hers: "Standing Pullover" },
+                { name: "Rear Delt / Curl", reps: "2 Sets", note: "Superset", hers: "Rear Delt / Curl" }
+            ],
+            d2: [
+                { name: "Face Pull", reps: "3x 10-15", note: "", hers: "Face Pull" },
+                { name: "Weighted Dip", reps: "2x 8-12", note: "", hers: "Machine Dip" },
+                { name: "AD Press", reps: "3 Sets: 4-6, 8, 12", note: "Reverse Pyramid", hers: "Seated DB Press" },
+                { name: "Lu Raise / Pec Deck", reps: "2 Sets", note: "", hers: "Lat Raise / Pec Deck" },
+                { name: "Tri Ext", reps: "2 Sets", note: "", hers: "Tri Ext" }
+            ],
+            d3: [
+                { name: "Squat", reps: "3x 6-8", note: "Heavy", hers: "Split Squat" },
+                { name: "RDL", reps: "2 Sets: 6, 15", note: "", hers: "RDL" },
+                { name: "Bulgarian Split Squat", reps: "2x 20", note: "", hers: "Walking Lunge" },
+                { name: "DB Row", reps: "2 Sets: 8, 12", note: "", hers: "DB Row" },
+                { name: "Abs/Neck", reps: "Failure", note: "", hers: "Good/Bad Girl" }
+            ],
+            d4: [
+                { name: "Neutral Pull-Up", reps: "3x 4-6", note: "Max Strength", hers: "Pulldown" },
+                { name: "Bent Over Row", reps: "3x 8-12", note: "", hers: "Bent Over Row" },
+                { name: "Rack Pulls", reps: "2x 8-12", note: "Use Straps", hers: "Rack Pulls" },
+                { name: "Partial Lat Raise", reps: "3x 8-15", note: "", hers: "Partial Lat Raise" },
+                { name: "Hammer Curl", reps: "3x 8-12", note: "", hers: "Hammer Curl" }
+            ],
+            d5: [
+                { name: "Face Pull", reps: "3x 10-15", note: "", hers: "Face Pull" },
+                { name: "Incline DB Press", reps: "3 Sets: 4-6, 8, 10", note: "Reverse Pyramid", hers: "Incline Fly" },
+                { name: "Seated Shoulder Press", reps: "3 Sets: 4-6, 8, 10", note: "Reverse Pyramid", hers: "Seated Shoulder Press" },
+                { name: "Tricep / Lat Raise", reps: "3 Sets", note: "", hers: "Tricep / Lat Raise" },
+                { name: "Neck/Legs", reps: "Failure", note: "", hers: "Leg Ext / Leg Curl" }
+            ]
+        }
+    };
+
+    // --- RENDER LOGIC ---
+    function render() {
+        // Toggle Body Theme
+        if (isWifeMode) {
+            document.body.classList.add('wife-mode');
+            document.querySelector('.mode-toggle').textContent = "CURRENT: HERS";
+        } else {
+            document.body.classList.remove('wife-mode');
+            document.querySelector('.mode-toggle').textContent = "CURRENT: HIS";
+        }
+
+        // Render Lists
+        ['p1', 'p2', 'p3'].forEach(phase => {
+            ['d1', 'd2', 'd3', 'd4', 'd5'].forEach(day => {
+                const listId = `${phase}-${day}-list`;
+                const container = document.getElementById(listId);
+                if (!container) return;
+                
+                container.innerHTML = '';
+                const exercises = data[phase][day];
+
+                exercises.forEach((ex, index) => {
+                    const exId = `${phase}-${day}-ex${index}`;
+                    
+                    // Logic to retrieve the correct title
+                    // If Wife Mode is active, check if there is a 'hers' mod in the JSON.
+                    // If so, use that as the default. 
+                    // However, we prioritize any Custom Saved Title in local storage for that specific mode.
+                    
+                    const storageKeySuffix = isWifeMode ? '-name-hers' : '-name-his';
+                    const defaultName = isWifeMode ? (ex.hers || ex.name) : ex.name;
+                    
+                    const savedTitle = localStorage.getItem(exId + storageKeySuffix) || defaultName;
+                    
+                    // Saved Weights/Notes (Separate for His/Hers)
+                    const dataSuffix = isWifeMode ? '-hers' : '-his';
+                    const savedWeight = localStorage.getItem(`${exId}-weight${dataSuffix}`) || '';
+                    const savedNotes = localStorage.getItem(`${exId}-notes${dataSuffix}`) || '';
+                    
+                    // Should we show the "Hers" badge? Only in HER mode if it was a swapped exercise, OR if manually customized.
+                    const showBadge = isWifeMode && ex.hers && ex.hers !== ex.name;
+
+                    const div = document.createElement('div');
+                    div.className = 'exercise-block';
+                    div.innerHTML = `
+                        <div class="ex-header">
+                            ${showBadge ? `<span class="hers-badge">GODDESS MOD</span>` : ''}
+                            <input class="ex-name-input" type="text" 
+                                   value="${savedTitle}" 
+                                   oninput="saveTitle('${exId}${storageKeySuffix}', this.value)">
+                            <span class="ex-reps">${ex.reps}</span>
+                        </div>
+                        
+                        <div class="input-row">
+                            <div class="input-group">
+                                <label>WEIGHT</label>
+                                <input class="data-input" type="text" 
+                                       value="${savedWeight}" placeholder="e.g. 50" 
+                                       oninput="save('${exId}-weight${dataSuffix}', this.value)">
+                            </div>
+                            <div class="input-group">
+                                <label>NOTES / REPS</label>
+                                <input class="data-input" type="text" 
+                                       value="${savedNotes}" placeholder="${ex.note}" 
+                                       oninput="save('${exId}-notes${dataSuffix}', this.value)">
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(div);
+                });
+            });
+        });
+    }
+
+    // --- APP FUNCTIONS ---
+
+    function toggleMode() {
+        isWifeMode = !isWifeMode;
+        render(); // Re-render everything to switch inputs and titles
+    }
+
+    function init() {
+        render();
+    }
+
+    function switchPhase(phaseId) {
+        document.querySelectorAll('.phase-container').forEach(el => el.classList.remove('active'));
+        document.getElementById(phaseId).classList.add('active');
+        
+        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+        event.currentTarget.classList.add('active');
+    }
+
+    function toggleDay(header) {
+        const content = header.nextElementSibling;
+        const arrow = header.querySelector('span');
+        if (content.classList.contains('open')) {
+            content.classList.remove('open');
+            arrow.textContent = '▼';
+        } else {
+            content.classList.add('open');
+            arrow.textContent = '▲';
+        }
+    }
+
+    function save(key, value) {
+        localStorage.setItem(key, value);
+    }
+
+    function saveTitle(key, value) {
+        localStorage.setItem(key, value);
+    }
+    
+    function clearData() {
+        if(confirm("Are you sure? This will delete ALL logged weights and custom names.")) {
+            localStorage.clear();
+            location.reload();
+        }
+    }
+
+    // Start App
+    init();
+
+</script>
+</body>
+</html>
