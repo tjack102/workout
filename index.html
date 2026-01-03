@@ -94,8 +94,8 @@
         }
         .exercise-block:last-child { border-bottom: none; }
         
-        /* EDITABLE TITLE STYLES */
-        .ex-header { display: flex; flex-direction: column; gap: 5px; margin-bottom: 8px; }
+        /* EDITABLE TITLE & REPS STYLES */
+        .ex-header { display: flex; flex-direction: column; gap: 2px; margin-bottom: 8px; }
         
         .ex-name-input {
             background: transparent;
@@ -110,7 +110,16 @@
         }
         .ex-name-input:focus { outline: none; border-bottom: 1px solid var(--accent); }
 
-        .ex-reps { font-size: 0.9rem; color: var(--secondary); font-family: monospace; }
+        .ex-reps-input {
+            background: transparent;
+            border: none;
+            color: var(--secondary);
+            font-family: monospace;
+            font-size: 0.9rem;
+            width: 100%;
+            padding: 2px 0;
+        }
+        .ex-reps-input:focus { outline: none; border-bottom: 1px solid var(--secondary); }
         
         .hers-badge {
             font-size: 0.7rem;
@@ -189,7 +198,7 @@
         <div class="day-card"><div class="day-header" onclick="toggleDay(this)">Day 5: PUSH <span>▼</span></div><div class="day-content" id="p3-d5-list"></div></div>
     </div>
 
-    <p class="small-hint">Everything auto-saves to your phone. Tap exercise names to rename them.</p>
+    <p class="small-hint">Everything auto-saves to your phone. Tap exercise names or reps to edit them.</p>
     <button class="reset-btn" onclick="clearData()">⚠️ RESET ALL DATA</button>
 
 <script>
@@ -339,22 +348,23 @@
                 exercises.forEach((ex, index) => {
                     const exId = `${phase}-${day}-ex${index}`;
                     
-                    // Logic to retrieve the correct title
-                    // If Wife Mode is active, check if there is a 'hers' mod in the JSON.
-                    // If so, use that as the default. 
-                    // However, we prioritize any Custom Saved Title in local storage for that specific mode.
-                    
+                    // -- RETRIEVE SAVED TITLE --
                     const storageKeySuffix = isWifeMode ? '-name-hers' : '-name-his';
                     const defaultName = isWifeMode ? (ex.hers || ex.name) : ex.name;
-                    
                     const savedTitle = localStorage.getItem(exId + storageKeySuffix) || defaultName;
                     
+                    // -- RETRIEVE SAVED REPS --
+                    // New logic for editable reps
+                    const repsKeySuffix = isWifeMode ? '-reps-hers' : '-reps-his';
+                    const defaultReps = ex.reps; 
+                    const savedReps = localStorage.getItem(exId + repsKeySuffix) || defaultReps;
+
                     // Saved Weights/Notes (Separate for His/Hers)
                     const dataSuffix = isWifeMode ? '-hers' : '-his';
                     const savedWeight = localStorage.getItem(`${exId}-weight${dataSuffix}`) || '';
                     const savedNotes = localStorage.getItem(`${exId}-notes${dataSuffix}`) || '';
                     
-                    // Should we show the "Hers" badge? Only in HER mode if it was a swapped exercise, OR if manually customized.
+                    // Badge logic
                     const showBadge = isWifeMode && ex.hers && ex.hers !== ex.name;
 
                     const div = document.createElement('div');
@@ -364,8 +374,10 @@
                             ${showBadge ? `<span class="hers-badge">GODDESS MOD</span>` : ''}
                             <input class="ex-name-input" type="text" 
                                    value="${savedTitle}" 
-                                   oninput="saveTitle('${exId}${storageKeySuffix}', this.value)">
-                            <span class="ex-reps">${ex.reps}</span>
+                                   oninput="save('${exId}${storageKeySuffix}', this.value)">
+                            <input class="ex-reps-input" type="text"
+                                   value="${savedReps}"
+                                   oninput="save('${exId}${repsKeySuffix}', this.value)">
                         </div>
                         
                         <div class="input-row">
@@ -423,10 +435,6 @@
     function save(key, value) {
         localStorage.setItem(key, value);
     }
-
-    function saveTitle(key, value) {
-        localStorage.setItem(key, value);
-    }
     
     function clearData() {
         if(confirm("Are you sure? This will delete ALL logged weights and custom names.")) {
@@ -440,5 +448,4 @@
 
 </script>
 </body>
-
 </html>
